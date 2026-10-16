@@ -1,0 +1,9 @@
+{
+  "name": "Nokia 3310 Snake II",
+  "short_name": "Snake II",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#1d2b44",
+  "orientation": "portrait"
+}
