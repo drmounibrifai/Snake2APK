@@ -95,9 +95,8 @@
   canvas {
     width: 100%;
     height: 100%;
-    object-fit: fill;
-    image-rendering: pixelated;
     display: block;
+    image-rendering: pixelated;
   }
   .lcd-grid {
     position: absolute;
@@ -224,8 +223,8 @@
   </div>
 
   <div class="bezel">
-    <div class="lcd-container">
-      <canvas id="lcd" width="144" height="104"></canvas>
+    <div class="lcd-container" id="lcdContainer">
+      <canvas id="lcd" width="144" height="144"></canvas>
       <div class="lcd-grid"></div>
     </div>
   </div>
@@ -263,8 +262,13 @@
 
 <script>
 const canvas = document.getElementById('lcd');
+const lcdContainer = document.getElementById('lcdContainer');
 const ctx = canvas.getContext('2d');
-const COLS = 36, ROWS = 22, CELL = 4, TOP_BAR = 16;
+
+const COLS = 36;
+const CELL = 4;
+const TOP_BAR = 16;
+let ROWS = 28; // Dynamically calculated so pixels stay 1:1 square (never stretched)
 
 let speedLevel = 5;
 let mazeIndex = 0;
@@ -282,6 +286,26 @@ let critter = null;
 let dotsEaten = 0;
 let walls = [];
 let lastTick = 0;
+
+// Locks 1:1 square pixel aspect ratio by matching internal canvas height & grid rows to the actual container dimensions
+function syncSquareAspect() {
+  const rect = lcdContainer.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const targetWidth = COLS * CELL; // 144 logical LCD pixels wide
+  const exactHeight = Math.round(targetWidth * (rect.height / rect.width));
+  const newRows = Math.max(18, Math.floor((exactHeight - TOP_BAR) / CELL));
+  if (newRows !== ROWS || canvas.height !== TOP_BAR + newRows * CELL) {
+    ROWS = newRows;
+    canvas.width = targetWidth;
+    canvas.height = TOP_BAR + ROWS * CELL;
+    buildWalls();
+    if (food && (food.y >= ROWS || isOccupied(food.x, food.y))) {
+      spawnFood();
+    }
+  }
+}
+
+window.addEventListener('resize', syncSquareAspect);
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function beep(freq, dur) {
@@ -310,7 +334,8 @@ function buildWalls() {
     for (let x = 8; x < COLS - 8; x++) walls.push({x, y: Math.floor(ROWS / 2)});
     for (let y = 4; y < ROWS - 4; y++) walls.push({x: Math.floor(COLS / 2), y});
   } else if (m === 'TUNNEL') {
-    for (let x = 6; x < COLS - 6; x++) { walls.push({x, y: 5}, {x, y: ROWS - 6}); }
+    const offset = Math.max(4, Math.floor(ROWS * 0.22));
+    for (let x = 6; x < COLS - 6; x++) { walls.push({x, y: offset}, {x, y: ROWS - 1 - offset}); }
   }
 }
 
@@ -323,31 +348,35 @@ function isOccupied(x, y) {
 }
 
 function spawnFood() {
-  let x, y;
+  let x, y, tries = 0;
   do {
     x = Math.floor(Math.random() * COLS);
     y = Math.floor(Math.random() * ROWS);
-  } while (isOccupied(x, y));
+    tries++;
+  } while (isOccupied(x, y) && tries < 500);
   food = {x, y};
 }
 
 function spawnCritter() {
-  let x, y;
+  let x, y, tries = 0;
   do {
     x = Math.floor(Math.random() * (COLS - 2)) + 1;
     y = Math.floor(Math.random() * (ROWS - 2)) + 1;
-  } while (isOccupied(x, y));
+    tries++;
+  } while (isOccupied(x, y) && tries < 500);
   critter = {x, y, timer: 45};
   beep(1200, 60);
 }
 
 function initGame() {
+  syncSquareAspect();
   buildWalls();
+  const startY = Math.min(ROWS - 3, Math.max(2, Math.floor(ROWS * 0.35)));
   snake = [
-    {x: 10, y: 11, bulge: false},
-    {x: 9, y: 11, bulge: false},
-    {x: 8, y: 11, bulge: false},
-    {x: 7, y: 11, bulge: false}
+    {x: 10, y: startY, bulge: false},
+    {x: 9, y: startY, bulge: false},
+    {x: 8, y: startY, bulge: false},
+    {x: 7, y: startY, bulge: false}
   ];
   dir = {x: 1, y: 0};
   inputQueue = [];
@@ -421,6 +450,7 @@ function draw() {
   ctx.fillStyle = '#9bbc0f';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Top Status Bar
   ctx.fillStyle = '#0f380f';
   ctx.fillRect(0, 14, canvas.width, 1);
   ctx.font = 'bold 10px monospace';
@@ -432,26 +462,32 @@ function draw() {
     ctx.fillText('M', 134, 11);
   }
 
+  const midY = Math.floor(canvas.height / 2);
+
   if (state === 'MENU') {
-    ctx.fillText('SNAKE II', 46, 40);
-    ctx.fillText('MAZE: ' + MAZES[mazeIndex], 36, 58);
-    ctx.fillText('SPEED: ' + speedLevel, 42, 72);
-    ctx.fillText('PRESS START', 36, 92);
+    ctx.fillText('SNAKE II', 46, midY - 22);
+    ctx.fillText('MAZE: ' + MAZES[mazeIndex], 36, midY - 4);
+    ctx.fillText('SPEED: ' + speedLevel, 42, midY + 12);
+    ctx.fillText('PRESS START', 36, midY + 32);
     return;
   }
 
+  // Walls
   ctx.fillStyle = '#0f380f';
   walls.forEach(w => ctx.fillRect(w.x * CELL, TOP_BAR + w.y * CELL, CELL, CELL));
 
+  // Food
   if (food) {
     ctx.fillRect(food.x * CELL + 1, TOP_BAR + food.y * CELL, 2, 4);
     ctx.fillRect(food.x * CELL, TOP_BAR + food.y * CELL + 1, 4, 2);
   }
 
+  // Critter
   if (critter) {
     ctx.fillRect(critter.x * CELL - 1, TOP_BAR + critter.y * CELL - 1, 6, 6);
   }
 
+  // Snake
   snake.forEach((s) => {
     const pad = s.bulge ? -1 : 0;
     ctx.fillRect(s.x * CELL + pad, TOP_BAR + s.y * CELL + pad, CELL - pad * 2, CELL - pad * 2);
@@ -459,19 +495,19 @@ function draw() {
 
   if (state === 'PAUSE') {
     ctx.fillStyle = '#9bbc0f';
-    ctx.fillRect(34, 46, 76, 22);
+    ctx.fillRect(34, midY - 12, 76, 22);
     ctx.strokeStyle = '#0f380f';
-    ctx.strokeRect(34, 46, 76, 22);
+    ctx.strokeRect(34, midY - 12, 76, 22);
     ctx.fillStyle = '#0f380f';
-    ctx.fillText('PAUSED', 52, 61);
+    ctx.fillText('PAUSED', 52, midY + 3);
   } else if (state === 'OVER') {
     ctx.fillStyle = '#9bbc0f';
-    ctx.fillRect(22, 38, 100, 38);
+    ctx.fillRect(22, midY - 20, 100, 38);
     ctx.strokeStyle = '#0f380f';
-    ctx.strokeRect(22, 38, 100, 38);
+    ctx.strokeRect(22, midY - 20, 100, 38);
     ctx.fillStyle = '#0f380f';
-    ctx.fillText('GAME OVER', 42, 52);
-    ctx.fillText('HI: ' + String(highScores[MAZES[mazeIndex]] || 0).padStart(4, '0'), 44, 68);
+    ctx.fillText('GAME OVER', 42, midY - 6);
+    ctx.fillText('HI: ' + String(highScores[MAZES[mazeIndex]] || 0).padStart(4, '0'), 44, midY + 10);
   }
 }
 
@@ -485,6 +521,7 @@ function loop(ts) {
   requestAnimationFrame(loop);
 }
 
+// Pure Gameplay Keypad Handlers (Numbers 1-9 strictly for playing)
 document.querySelectorAll('[data-play]').forEach(btn => {
   btn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
@@ -510,6 +547,7 @@ document.querySelectorAll('[data-play]').forEach(btn => {
   });
 });
 
+// Separate Action & Settings Bar Handlers
 document.getElementById('actSpdDown').addEventListener('pointerdown', (e) => {
   e.preventDefault();
   speedLevel = Math.max(1, speedLevel - 1);
@@ -535,6 +573,7 @@ document.getElementById('actReset').addEventListener('pointerdown', (e) => {
   initGame();
 });
 
+// Top Softkeys & Navi
 document.getElementById('btnNavi').addEventListener('pointerdown', (e) => {
   e.preventDefault();
   if (state === 'MENU' || state === 'OVER') initGame();
@@ -568,6 +607,8 @@ window.addEventListener('keydown', e => {
   }
 });
 
+syncSquareAspect();
+buildWalls();
 requestAnimationFrame(loop);
 </script>
 </body>
