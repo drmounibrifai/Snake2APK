@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#1e293b">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#152033">
 <link rel="manifest" href="manifest.json">
 <title>Nokia 3310 Snake II</title>
 <style>
@@ -15,101 +15,249 @@
     --body-navy: #1d2b44;
     --bezel-silver: #c9d1d9;
   }
-  * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
-  body {
-    margin: 0; padding: 0; background: #0d1117; color: #fff;
+  * {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: #152033;
+    color: #fff;
     font-family: 'Courier New', Courier, monospace;
-    display: flex; justify-content: center; align-items: center;
-    min-height: 100vh; overflow: hidden;
+    overflow: hidden;
   }
   .handset {
-    width: 360px; max-width: 96vw; background: linear-gradient(145deg, #243552, #152033);
-    border-radius: 46px 46px 56px 56px; padding: 18px 20px 24px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 2px 4px rgba(255,255,255,0.2);
-    border: 3px solid #0f1724; display: flex; flex-direction: column; align-items: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(160deg, #243552 0%, #152033 60%, #0f1724 100%);
+    padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .top-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    flex-shrink: 0;
+    margin-bottom: 6px;
   }
   .earpiece {
-    width: 60px; height: 8px; background: #0b111a; border-radius: 4px;
-    margin-bottom: 10px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.15);
+    width: 68px;
+    height: 7px;
+    background: #090e17;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.18);
   }
   .brand {
-    font-family: sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 3px;
-    color: #cbd5e1; margin-bottom: 8px;
+    font-family: sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: #cbd5e1;
   }
   .bezel {
-    background: var(--bezel-silver); padding: 12px 14px 16px;
-    border-radius: 18px 18px 28px 28px; width: 100%;
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.45);
-    display: flex; flex-direction: column; align-items: center;
+    background: var(--bezel-silver);
+    padding: 10px 12px 12px;
+    border-radius: 18px 18px 26px 26px;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    box-shadow: inset 0 3px 7px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
   .lcd-container {
-    position: relative; width: 288px; height: 208px;
-    background: var(--lcd-bg); border: 4px solid #4a5568; border-radius: 6px;
-    box-shadow: inset 0 3px 8px rgba(0,0,0,0.35); overflow: hidden;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--lcd-bg);
+    border: 4px solid #4a5568;
+    border-radius: 8px;
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.35);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   canvas {
-    width: 100%; height: 100%; image-rendering: pixelated; display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    image-rendering: pixelated;
+    display: block;
   }
   .lcd-grid {
-    position: absolute; inset: 0; pointer-events: none;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
     background-image: linear-gradient(rgba(15,56,15,0.06) 1px, transparent 1px),
                       linear-gradient(90deg, rgba(15,56,15,0.06) 1px, transparent 1px);
     background-size: 3px 3px;
   }
+  .controls-section {
+    width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
   .controls-row {
-    display: flex; justify-content: space-between; align-items: center;
-    width: 100%; margin: 14px 0 10px; padding: 0 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
   }
   .btn-soft {
-    background: #334155; color: #e2e8f0; border: 2px solid #0f172a;
-    border-radius: 14px; padding: 8px 14px; font-weight: bold; font-size: 12px;
-    cursor: pointer; box-shadow: 0 4px 0 #0f172a; active: translateY(2px);
-  }
-  .btn-soft:active, .key:active, .btn-navi:active { transform: translateY(2px); box-shadow: 0 1px 0 #0f172a; }
-  .btn-navi {
-    background: linear-gradient(180deg, #3b82f6, #1d4ed8); color: #fff;
-    border: 2px solid #0f172a; border-radius: 20px; width: 110px; height: 38px;
-    font-weight: 800; font-size: 13px; letter-spacing: 1px; cursor: pointer;
+    flex: 1;
+    background: #334155;
+    color: #e2e8f0;
+    border: 2px solid #0f172a;
+    border-radius: 14px;
+    height: 40px;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
     box-shadow: 0 4px 0 #0f172a;
   }
+  .btn-navi {
+    flex: 1.4;
+    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+    color: #fff;
+    border: 2px solid #0f172a;
+    border-radius: 20px;
+    height: 42px;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #0f172a;
+  }
+  .action-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    width: 100%;
+    background: rgba(15, 23, 42, 0.55);
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .btn-action {
+    background: linear-gradient(180deg, #475569, #1e293b);
+    color: #f8fafc;
+    border: 1.5px solid #0f172a;
+    border-radius: 10px;
+    height: 36px;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #0f172a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .btn-action.warn {
+    color: #fca5a5;
+  }
   .keypad {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+    width: 100%;
+    margin-top: 2px;
   }
   .key {
-    background: linear-gradient(180deg, #e2e8f0, #94a3b8); color: #0f172a;
-    border: 2px solid #0f172a; border-radius: 18px; height: 48px;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 0 #0f172a;
+    background: linear-gradient(180deg, #e2e8f0, #94a3b8);
+    color: #0f172a;
+    border: 2px solid #0f172a;
+    border-radius: 18px;
+    height: 58px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #0f172a;
   }
-  .key.dir { background: linear-gradient(180deg, #fde047, #eab308); }
-  .key span { font-size: 9px; font-weight: 700; opacity: 0.75; }
+  .key.dir {
+    background: linear-gradient(180deg, #fde047, #eab308);
+  }
+  .key.center-play {
+    background: linear-gradient(180deg, #cbd5e1, #64748b);
+  }
+  .key span {
+    font-size: 10px;
+    font-weight: 800;
+    opacity: 0.82;
+    margin-top: 1px;
+  }
+  .btn-soft:active, .btn-navi:active, .btn-action:active, .key:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #0f172a;
+  }
 </style>
 </head>
 <body>
 <div class="handset">
-  <div class="earpiece"></div>
-  <div class="brand">NOKIA</div>
+  <div class="top-header">
+    <div class="earpiece"></div>
+    <div class="brand">NOKIA</div>
+  </div>
+
   <div class="bezel">
     <div class="lcd-container">
       <canvas id="lcd" width="144" height="104"></canvas>
       <div class="lcd-grid"></div>
     </div>
   </div>
-  <div class="controls-row">
-    <button class="btn-soft" id="btnMute">C / MUTE</button>
-    <button class="btn-navi" id="btnNavi">NAVI / OK</button>
-    <button class="btn-soft" id="btnMode">MODE ▲▼</button>
-  </div>
-  <div class="keypad">
-    <button class="key" data-key="1">1<span>SPD-</span></button>
-    <button class="key dir" data-dir="UP">2<span>▲ UP</span></button>
-    <button class="key" data-key="3">3<span>SPD+</span></button>
-    <button class="key dir" data-dir="LEFT">4<span>◄ LEFT</span></button>
-    <button class="key" data-dir="ACTION">5<span>● PAUSE</span></button>
-    <button class="key dir" data-dir="RIGHT">6<span>RIGHT ►</span></button>
-    <button class="key" data-key="7">7<span>MAZE</span></button>
-    <button class="key dir" data-dir="DOWN">8<span>▼ DOWN</span></button>
-    <button class="key" data-key="9">9<span>RESET</span></button>
+
+  <div class="controls-section">
+    <!-- Nokia Soft-Key & Navi Bar -->
+    <div class="controls-row">
+      <button class="btn-soft" id="btnMute">C / MUTE</button>
+      <button class="btn-navi" id="btnNavi">START / OK</button>
+      <button class="btn-soft" id="btnMenu">MENU</button>
+    </div>
+
+    <!-- Dedicated System & Settings Strip (Separated from Number Keypad) -->
+    <div class="action-strip">
+      <button class="btn-action" id="actSpdDown">SPD -</button>
+      <button class="btn-action" id="actSpdUp">SPD +</button>
+      <button class="btn-action" id="actMaze">MAZE</button>
+      <button class="btn-action warn" id="actReset">RESET</button>
+    </div>
+
+    <!-- Pure Gameplay Number Keypad (1-9 Only for Playing/Steering) -->
+    <div class="keypad">
+      <button class="key" data-play="UL">1<span>↖ UP/L</span></button>
+      <button class="key dir" data-play="UP">2<span>▲ UP</span></button>
+      <button class="key" data-play="UR">3<span>↗ UP/R</span></button>
+      <button class="key dir" data-play="LEFT">4<span>◄ LEFT</span></button>
+      <button class="key center-play" data-play="PAUSE">5<span>● PAUSE</span></button>
+      <button class="key dir" data-play="RIGHT">6<span>RIGHT ►</span></button>
+      <button class="key" data-play="DL">7<span>↙ DN/L</span></button>
+      <button class="key dir" data-play="DOWN">8<span>▼ DOWN</span></button>
+      <button class="key" data-play="DR">9<span>↘ DN/R</span></button>
+    </div>
   </div>
 </div>
 
@@ -218,6 +366,15 @@ function queueDir(nx, ny) {
   }
 }
 
+function queueDiagonalTurn(targetX, targetY) {
+  const last = inputQueue.length ? inputQueue[inputQueue.length - 1] : dir;
+  if (last.x !== 0) {
+    queueDir(0, targetY);
+  } else {
+    queueDir(targetX, 0);
+  }
+}
+
 function step() {
   if (inputQueue.length) dir = inputQueue.shift();
   const head = snake[0];
@@ -264,7 +421,6 @@ function draw() {
   ctx.fillStyle = '#9bbc0f';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Top Status Bar
   ctx.fillStyle = '#0f380f';
   ctx.fillRect(0, 14, canvas.width, 1);
   ctx.font = 'bold 10px monospace';
@@ -277,30 +433,26 @@ function draw() {
   }
 
   if (state === 'MENU') {
-    ctx.fillText('SNAKE II', 46, 42);
-    ctx.fillText('MAZE: ' + MAZES[mazeIndex], 36, 60);
-    ctx.fillText('SPEED: ' + speedLevel, 42, 74);
-    ctx.fillText('PRESS NAVI', 38, 94);
+    ctx.fillText('SNAKE II', 46, 40);
+    ctx.fillText('MAZE: ' + MAZES[mazeIndex], 36, 58);
+    ctx.fillText('SPEED: ' + speedLevel, 42, 72);
+    ctx.fillText('PRESS START', 36, 92);
     return;
   }
 
-  // Walls
   ctx.fillStyle = '#0f380f';
   walls.forEach(w => ctx.fillRect(w.x * CELL, TOP_BAR + w.y * CELL, CELL, CELL));
 
-  // Food
   if (food) {
     ctx.fillRect(food.x * CELL + 1, TOP_BAR + food.y * CELL, 2, 4);
     ctx.fillRect(food.x * CELL, TOP_BAR + food.y * CELL + 1, 4, 2);
   }
 
-  // Critter
   if (critter) {
     ctx.fillRect(critter.x * CELL - 1, TOP_BAR + critter.y * CELL - 1, 6, 6);
   }
 
-  // Snake
-  snake.forEach((s, i) => {
+  snake.forEach((s) => {
     const pad = s.bulge ? -1 : 0;
     ctx.fillRect(s.x * CELL + pad, TOP_BAR + s.y * CELL + pad, CELL - pad * 2, CELL - pad * 2);
   });
@@ -333,49 +485,72 @@ function loop(ts) {
   requestAnimationFrame(loop);
 }
 
-document.querySelectorAll('[data-dir]').forEach(btn => {
+document.querySelectorAll('[data-play]').forEach(btn => {
   btn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    const d = btn.dataset.dir;
-    if (d === 'ACTION') {
+    const act = btn.dataset.play;
+    if (act === 'PAUSE') {
       if (state === 'PLAY') state = 'PAUSE';
       else if (state === 'PAUSE') state = 'PLAY';
       else initGame();
       return;
     }
-    if (state !== 'PLAY') return;
-    if (d === 'UP') queueDir(0, -1);
-    if (d === 'DOWN') queueDir(0, 1);
-    if (d === 'LEFT') queueDir(-1, 0);
-    if (d === 'RIGHT') queueDir(1, 0);
+    if (state !== 'PLAY') {
+      initGame();
+      return;
+    }
+    if (act === 'UP') queueDir(0, -1);
+    else if (act === 'DOWN') queueDir(0, 1);
+    else if (act === 'LEFT') queueDir(-1, 0);
+    else if (act === 'RIGHT') queueDir(1, 0);
+    else if (act === 'UL') queueDiagonalTurn(-1, -1);
+    else if (act === 'UR') queueDiagonalTurn(1, -1);
+    else if (act === 'DL') queueDiagonalTurn(-1, 1);
+    else if (act === 'DR') queueDiagonalTurn(1, 1);
   });
 });
 
-document.querySelectorAll('[data-key]').forEach(btn => {
-  btn.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    const k = btn.dataset.key;
-    if (k === '1') { speedLevel = Math.max(1, speedLevel - 1); beep(600, 30); }
-    if (k === '3') { speedLevel = Math.min(9, speedLevel + 1); beep(800, 30); }
-    if (k === '7') { mazeIndex = (mazeIndex + 1) % MAZES.length; beep(700, 30); }
-    if (k === '9') { state = 'MENU'; beep(400, 50); }
-  });
+document.getElementById('actSpdDown').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  speedLevel = Math.max(1, speedLevel - 1);
+  beep(600, 30);
 });
 
-document.getElementById('btnNavi').addEventListener('pointerdown', () => {
+document.getElementById('actSpdUp').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  speedLevel = Math.min(9, speedLevel + 1);
+  beep(800, 30);
+});
+
+document.getElementById('actMaze').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  mazeIndex = (mazeIndex + 1) % MAZES.length;
+  if (state === 'PLAY' || state === 'PAUSE') initGame();
+  else buildWalls();
+  beep(700, 35);
+});
+
+document.getElementById('actReset').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  initGame();
+});
+
+document.getElementById('btnNavi').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
   if (state === 'MENU' || state === 'OVER') initGame();
   else if (state === 'PLAY') state = 'PAUSE';
   else if (state === 'PAUSE') state = 'PLAY';
 });
 
-document.getElementById('btnMute').addEventListener('pointerdown', () => {
+document.getElementById('btnMute').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
   muted = !muted;
 });
 
-document.getElementById('btnMode').addEventListener('pointerdown', () => {
-  if (state === 'PLAY') return;
-  mazeIndex = (mazeIndex + 1) % MAZES.length;
-  beep(750, 40);
+document.getElementById('btnMenu').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  state = 'MENU';
+  beep(500, 40);
 });
 
 window.addEventListener('keydown', e => {
@@ -383,7 +558,11 @@ window.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown' || e.key === '8' || e.key === 's') queueDir(0, 1);
   if (e.key === 'ArrowLeft' || e.key === '4' || e.key === 'a') queueDir(-1, 0);
   if (e.key === 'ArrowRight' || e.key === '6' || e.key === 'd') queueDir(1, 0);
-  if (e.key === 'Enter' || e.key === ' ') {
+  if (e.key === '1') queueDiagonalTurn(-1, -1);
+  if (e.key === '3') queueDiagonalTurn(1, -1);
+  if (e.key === '7') queueDiagonalTurn(-1, 1);
+  if (e.key === '9') queueDiagonalTurn(1, 1);
+  if (e.key === 'Enter' || e.key === ' ' || e.key === '5') {
     if (state === 'MENU' || state === 'OVER') initGame();
     else state = (state === 'PLAY') ? 'PAUSE' : 'PLAY';
   }
